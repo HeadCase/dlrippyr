@@ -6,35 +6,32 @@ Email: gheadley27@gmail.com
 Github: https://github.com/headcase
 Description: A CLI utility for encoding video files
 """
+
 import click
 
-
-def handbrake_cmd(input_file, output_file, start=0, stop=0):
-    cmd = ''
-    in_ = '-i {} '.format(input_file)
-    out_ = '-o {}'.format(output_file)
-    start_ = ''
-    stop_ = ''
-    if start:
-        start_ = '--start-at seconds:{} '.format(start)
-    if stop:
-        stop_ = '--start-at seconds:{} '.format(stop)
-    if (start_ or stop_):
-        cmd = in_ + start_ + stop_ + out_
-    else:
-        cmd = in_ + out_
-    return cmd
+from tools import get_info, make_cmd
 
 
 @click.command()
 @click.argument('input_file')
 @click.option('-o', 'output_file', default='test.mkv')
+@click.option('-i', 'info', is_flag=True)
 @click.option('--start', 'start', default=0)
 @click.option('--stop', 'stop', default=0)
-def cli(input_file, output_file, start, stop):
+def cli(input_file, output_file, start, stop, info):
     """
     A tool for video encoding using HandBrakeCLI. Accepts an input file to be
     reencoded
     """
-    cmd = handbrake_cmd(input_file, output_file, start, stop)
-    click.echo('Your handbrake dry run is:\nhandbrake {}'.format(cmd))
+    if info:
+        click.echo("Here is your file's info:")
+        get_info(input_file)
+    else:
+        cmd = make_cmd(input_file, output_file, start, stop)
+        click.echo('Your handbrake dry run is:\nhandbrake {}'.format(cmd))
+
+
+# ffprobe can be used to acquire video file metadata. The following
+# incantation returns JSON formatted metadata for the video stream of a given
+# file
+# ffprobe -hide_banner -print_format json -show_streams -select_streams v samples/shotgun.mkv

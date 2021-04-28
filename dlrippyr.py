@@ -16,10 +16,10 @@ from tools import get_info, make_cmd
 @click.argument('input_file')
 @click.option('-o', 'output_file', default='test.mkv')
 @click.option('-i', 'info', is_flag=True)
-@click.option('-v', 'version', is_flag=True)
+@click.version_option()
 @click.option('--start', 'start', default=0)
 @click.option('--stop', 'stop', default=0)
-def cli(input_file, output_file, start, stop, info):
+def cli(input_file, output_file, start, stop, info, version):
     """
     A tool for video encoding using HandBrakeCLI. Accepts an input file to be
     reencoded

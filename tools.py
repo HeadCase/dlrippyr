@@ -4,14 +4,14 @@ import subprocess
 
 
 def get_info(video_file):
-    r"""Print relevant metadata from supplied video file 
+    r"""Print relevant metadata from supplied video file
 
     Parameters
     ----------
     video_file: str
         Path name to a video file in the form of a str object. Passed to
         `ffparse`
-    
+
     Returns
     -------
     Prints to STDOUT
@@ -48,7 +48,7 @@ def get_json(video_file):
     video_file: str
         Path name to a video file in the form of a str object. Passed to
         `ffparse`
-    
+
     Returns
     -------
     _json:  str

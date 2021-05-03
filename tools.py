@@ -66,20 +66,22 @@ def get_json(video_file):
     return _json
 
 
-def make_cmd(video_in, video_out, start=0, stop=0):
-    cmd = ''
+def make_cmd(video_in, video_out, preset, start=None, stop=None):
+    preset_name = preset.strip('.json')
+    cmd = 'HandBrakeCLI '
     _in = f'-i {video_in} '
     _out = f'-o {video_out}'
+    _preset = f'--preset-import-file {preset} -Z {preset_name} '
     _start = ''
     _stop = ''
-    if start:
+    if start != None:
         _start = f'--start-at seconds:{start} '
-    if stop:
-        _stop = f'--start-at seconds:{stop} '
+    if stop != None:
+        _stop = f'--stop-at seconds:{stop} '
     if (_start or _stop):
-        cmd = _in + _start + _stop + _out
+        cmd = cmd + _preset + _in + _start + _stop + _out
     else:
-        cmd = _in + _out
+        cmd = cmd + _preset + _in + _out
     return cmd
 
 
@@ -102,7 +104,7 @@ def find_vfiles(dir):
         for path in glob:
             paths.append(path)
 
-    paths = sorted(paths)  #, reverse=True)
+    paths = sorted(paths)  # , reverse=True)
 
     # for path in paths:
     #     print(f"File found: {path}")

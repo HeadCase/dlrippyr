@@ -3,11 +3,14 @@
     {
       "AlignAVStart" : true,
       "AudioCopyMask" : [
-        "copy:aac"
+        "copy:aac",
+        "copy:ac3",
+        "copy:dtshd",
+        "copy:dts"
       ],
       "AudioEncoderFallback" : "ca_aac",
       "AudioLanguageList" : [
-
+        "und"
       ],
       "AudioList" : [
         {
@@ -25,7 +28,7 @@
         }
       ],
       "AudioSecondaryEncoderMode" : true,
-      "AudioTrackSelectionBehavior" : "first",
+      "AudioTrackSelectionBehavior" : "all",
       "ChapterMarkers" : true,
       "ChildrenArray" : [
 
@@ -74,16 +77,16 @@
       "PictureWidth" : 1920,
       "PresetDescription" : "",
       "PresetName" : "x265-1080p-mkv",
-      "SubtitleAddCC" : false,
+      "SubtitleAddCC" : true,
       "SubtitleAddForeignAudioSearch" : true,
       "SubtitleAddForeignAudioSubtitle" : false,
       "SubtitleBurnBDSub" : true,
       "SubtitleBurnBehavior" : "foreign",
       "SubtitleBurnDVDSub" : true,
       "SubtitleLanguageList" : [
-
+        "eng"
       ],
-      "SubtitleTrackSelectionBehavior" : "none",
+      "SubtitleTrackSelectionBehavior" : "all",
       "Type" : 1,
       "UsesPictureFilters" : true,
       "UsesPictureSettings" : 1,
@@ -91,7 +94,7 @@
       "VideoColorMatrixCode" : 0,
       "VideoEncoder" : "x265",
       "VideoFramerate" : "auto",
-      "VideoFramerateMode" : "vfr",
+      "VideoFramerateMode" : "cfr",
       "VideoGrayScale" : false,
       "VideoLevel" : "auto",
       "VideoOptionExtra" : "",

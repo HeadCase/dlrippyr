@@ -8,8 +8,8 @@ Description: A CLI utility for encoding video files
 """
 
 import re
-import subprocess
 from pathlib import Path
+from subprocess import PIPE, Popen
 
 import click
 
@@ -20,18 +20,43 @@ DEFAULT_PRESET = 'x265-1080p-mkv.json'
 
 @click.command()
 @click.argument('input-file', type=click.Path(exists=True))
-@click.option('-o', '--output-file', default='')
-@click.option('-i', '--info', is_flag=True, default=False)
-@click.option('-s', '--sample', is_flag=True, default=False)
-@click.option('-d', '--dry-run', is_flag=True, default=False)
-@click.option('-p', '--preset', default=DEFAULT_PRESET)
 @click.version_option()
-@click.option('--start', 'start', default=None)
-@click.option('--stop', 'stop', default=None)
+@click.option('-o',
+              '--output-file',
+              default='',
+              help='Output file/path, defaults to source name/path')
+@click.option('-i',
+              '--info',
+              is_flag=True,
+              default=False,
+              help='Query supplied file for metadata')
+@click.option('-s',
+              '--sample',
+              is_flag=True,
+              default=False,
+              help='Trigger encoding of just first 20 seconds of input file')
+@click.option('-d',
+              '--dry-run',
+              is_flag=True,
+              default=False,
+              help='Print to screen command which would have been run')
+@click.option('-p',
+              '--preset',
+              default=DEFAULT_PRESET,
+              help='Preset file for encoding (JSON format)')
+@click.option('--start',
+              'start',
+              default=None,
+              help='Time at which to start encoding, default None')
+@click.option('--stop',
+              'stop',
+              default=None,
+              help='Time at which to stop encoding, default None')
 def cli(input_file, output_file, start, stop, info, sample, preset, dry_run):
     """
-    A tool for video encoding using HandBrakeCLI. Accepts an input file to be
-    reencoded
+    A tool for encoding AVC (H264) video files to the more space-efficient
+    HEVC (H265) codec using HandBrakeCLI. Accepts a single input video file or
+    a directory or tree
     """
     input_path = Path(input_file)
 
@@ -65,52 +90,24 @@ def cli(input_file, output_file, start, stop, info, sample, preset, dry_run):
             cmd = make_cmd(input_file, output_file, preset, start, stop)
             click.echo('Your handbrake dry run is:\n{}'.format(cmd))
     else:
-        if sample:
-            start = 0
-            stop = 20
-        cmd = make_cmd(input_file, output_file, preset, start, stop).split()
-        process = subprocess.Popen(cmd,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
-        print(process.communicate())
-        # process = subprocess.Popen(, stdout=subprocess.PIPE,
-        #                            stderr=subprocess.STDOUT)
-        # print(process)
-        # out, err = process.communicate()
-        # print(out, err)
-        # while True:
-        #     out_out = process.stdout.readline()
-        #     # out_err = process.stderr.readline()
-        #     if out_out == '' and process.poll() is not None:
-        #         break
-        #     # if out_err == '' and process.poll() is not None:
-        #         # break
-        #     if out_out:
-        #         print(out_out.strip(), flush=True)
-        #     # if out_err:
-        #         # print(out_err.strip(), flush=True)
-
-        # process.poll()
-        # process = subprocess.Popen(cmd,
-        #                            shell=True,
-        #                            stderr=subprocess.PIPE,
-        #                            stdout=subprocess.PIPE)
-        # for line in iter(process.stdout.readline, b''):
-
-        #     # regex match for % complete and ETA
-        #     matches = re.match(r'.*(\d+\.\d+)\s%.*ETA\s(\d+)h(\d+)m(\d+)s',
-        #                        line.decode('utf-8'))
-
-        #     if matches:
-        #         print(matches.group())
-
-        #     print(line)
-
-        # process.stderr.close()
-        # process.stdout.close()
-        # process.wait()
-        # result = subprocess.run(cmd, shell=True, capture_output=True)
-        # print(result)
+        if input_path.is_dir():
+            print('''
+Directory support coming soon!
+Use --dry-run flag to see files found for encoding
+            ''')
+        else:
+            if sample:
+                start = 0
+                stop = 20
+            cmd = make_cmd(input_file, output_file, preset, start,
+                           stop).split()
+            process = Popen(cmd)
+            while True:
+                sout = process.communicate()[0]
+                if process.poll() is not None:
+                    break
+                if sout:
+                    print(sout)
 
 
 # ffprobe can be used to acquire video file metadata. The following

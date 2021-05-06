@@ -1,22 +1,41 @@
 #!/usr/bin/env python
 import json
 import subprocess
+from collections import deque
 from pathlib import Path
 
+# import snoop
+# from loguru import logger
 
-def get_info(video_file):
-    r"""Print relevant metadata from supplied video file
+
+def get_info(input_path):
+    r"""Print relevant metadata from supplied video file(s)
 
     Parameters
     ----------
-    video_file: str
-        Path name to a video file in the form of a str object. Passed to
-        `ffparse`
+    input_path: str
+        Path name to a single video file in the form of a str object.
+        Alternatively, directory which is parsed recursively to discover video
+        files. Video file(s) are passed to `ffparse`
 
     Returns
     -------
     Prints to STDOUT
     """
+    if input_path.is_dir():
+        files = find_vfiles(str(input_path))
+        for file in files:
+            print(f'Metatdata for {file}')
+            print_meta(file)
+            print()  # Finish with a carriage return
+    else:
+        print(f'Metatdata for {input_path}')
+        print_meta(input_path)
+        print()  # Finish with a carriage return
+
+
+def print_meta(video_file):
+    """foo!"""
     relevant_tags = {
         'format_name': 'format',
         'codec_name': 'streams',
@@ -36,6 +55,10 @@ def get_info(video_file):
             relevant_data[k] = metadata[v][0][k]
         else:
             relevant_data[k] = metadata[v][k]
+    rate_mb = (int(relevant_data['bit_rate']) / 1000**2)
+    size_mb = int(relevant_data['size']) / 1024**2
+    relevant_data['bit_rate'] = '{} Mb/s'.format(round(rate_mb, 1))
+    relevant_data['size'] = '{} MB'.format(round(size_mb, 1))
 
     for k, v in relevant_data.items():
         print('{:>18}: {}'.format(k, v))
@@ -65,8 +88,13 @@ def get_json(video_file):
 
     return _json
 
+    # ffprobe incantation for posterity:
+    # ffprobe -hide_banner -print_format json -show_streams -select_streams v
+    # samples/shotgun.mkv
+
 
 def make_cmd(video_in, video_out, preset, start=None, stop=None):
+    """foo!"""
     preset_name = preset.strip('.json')
     cmd = 'HandBrakeCLI '
     _in = f'-i {video_in} '
@@ -96,7 +124,15 @@ def find_vfiles(dir):
     -------
     list: list of file paths
     """
-    exts = ['mkv', 'MKV', 'mp4', 'MP4', 'mov', 'MOV']
+    # exts = ['mkv', 'MKV', 'mp4', 'MP4', 'mov']  # , 'MOV']
+    queue = deque(['mkv', 'mp4', 'mov', 'wmv', 'avi'])
+    exts = []
+    while queue:
+        ext = queue.pop()
+        exts.append(ext)
+        exts.append(ext.upper())
+        # exts.append(ext.title())
+
     cwd = Path(f"{dir}")
     paths = []
     for ext in exts:
@@ -104,9 +140,6 @@ def find_vfiles(dir):
         for path in glob:
             paths.append(path)
 
-    paths = sorted(paths)  # , reverse=True)
-
-    # for path in paths:
-    #     print(f"File found: {path}")
+    paths = sorted(paths)
 
     return paths

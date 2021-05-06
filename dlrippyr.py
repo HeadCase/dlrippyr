@@ -7,9 +7,9 @@ Github: https://github.com/headcase
 Description: A CLI utility for encoding video files
 """
 
-import re
+# import re
 from pathlib import Path
-from subprocess import PIPE, Popen
+from subprocess import Popen
 
 import click
 
@@ -64,15 +64,7 @@ def cli(input_file, output_file, start, stop, info, sample, preset, dry_run):
         # If no input is provided, use root of input file with mkv extension
         output_file = input_file.rsplit('.', 1)[0] + '.mkv'
     if info:
-        if input_path.is_dir():
-            files = find_vfiles(input_file)
-            for file in files:
-                click.echo(f"Here is the info for {file}:")
-                get_info(file)
-                click.echo('')
-        else:
-            click.echo(f"Here is the info for {input_path}:")
-            get_info(input_file)
+        get_info(input_path)
     elif dry_run:
         if input_path.is_dir():
             files = find_vfiles(input_file)
@@ -108,9 +100,3 @@ Use --dry-run flag to see files found for encoding
                     break
                 if sout:
                     print(sout)
-
-
-# ffprobe can be used to acquire video file metadata. The following
-# incantation returns JSON formatted metadata for the video stream of a given
-# file
-# ffprobe -hide_banner -print_format json -show_streams -select_streams v samples/shotgun.mkv

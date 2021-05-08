@@ -4,8 +4,22 @@ import subprocess
 from collections import deque
 from pathlib import Path
 
-# import snoop
-# from loguru import logger
+import snoop
+from loguru import logger
+
+
+# @snoop
+# @logger.catch
+def run_dry(input_path, output_path, preset, start, stop):
+    files = find_vfiles(input_path)
+    if output_path:
+        for item in files:
+            (input_file, _) = item
+            print(make_cmd(input_file, output_path, preset, start, stop))
+    else:
+        for item in files:
+            (input_file, output_file) = item
+            print(make_cmd(input_file, output_file, preset, start, stop))
 
 
 def get_info(input_path):
@@ -23,13 +37,14 @@ def get_info(input_path):
     Prints to STDOUT
     """
     if input_path.is_dir():
-        files = find_vfiles(str(input_path))
-        for file in files:
-            print(f'Metatdata for {file}')
+        files = find_vfiles(input_path)
+        for item in files:
+            (file, _) = item
+            print(f'Metadata for {file}')
             print_meta(file)
             print()  # Finish with a carriage return
     else:
-        print(f'Metatdata for {input_path}')
+        print(f'Metadata for {input_path}')
         print_meta(input_path)
         print()  # Finish with a carriage return
 
@@ -113,33 +128,38 @@ def make_cmd(video_in, video_out, preset, start=None, stop=None):
     return cmd
 
 
-def find_vfiles(dir):
+def find_vfiles(input_path):
     r"""Acquire list of all video files recursively from supplied dir
 
     Parameters
     ----------
-    dir: a directory to recursively parse
+    input_path: a pathlib.Path object to recursively parse for video files. If
+    a lone file is supplied, it is simply returned.
 
     Returns
     -------
     list: list of file paths
     """
-    # exts = ['mkv', 'MKV', 'mp4', 'MP4', 'mov']  # , 'MOV']
-    queue = deque(['mkv', 'mp4', 'mov', 'wmv', 'avi'])
-    exts = []
-    while queue:
-        ext = queue.pop()
-        exts.append(ext)
-        exts.append(ext.upper())
-        # exts.append(ext.title())
-
-    cwd = Path(f"{dir}")
     paths = []
-    for ext in exts:
-        glob = cwd.rglob(f'*{ext}')
-        for path in glob:
-            paths.append(path)
 
-    paths = sorted(paths)
+    if input_path.is_file():
+        output_path = str(input_path).rsplit('.', 1)[0] + '.mkv'
+        in_out = (input_path, output_path)
+        paths.append(in_out)
+    if input_path.is_dir():
+        queue = deque(['mkv', 'mp4', 'mov', 'wmv', 'avi'])
+        exts = []
+        while queue:
+            ext = queue.pop()
+            exts.append(ext)
+            exts.append(ext.upper())
+
+        cwd = Path(f"{input_path}")
+        for ext in exts:
+            glob = cwd.rglob(f'*{ext}')
+            for path in glob:
+                output_path = str(path).rsplit('.', 1)[0] + '.mkv'
+                in_out = (path, output_path)
+                paths.append(in_out)
 
     return paths

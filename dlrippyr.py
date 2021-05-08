@@ -13,7 +13,7 @@ from subprocess import Popen
 
 import click
 
-from tools import find_vfiles, get_info, make_cmd
+from tools import find_vfiles, get_info, make_cmd, run_dry
 
 DEFAULT_PRESET = 'x265-1080p-mkv.json'
 
@@ -22,7 +22,7 @@ DEFAULT_PRESET = 'x265-1080p-mkv.json'
 @click.argument('input-file', type=click.Path(exists=True))
 @click.version_option()
 @click.option('-o',
-              '--output-file',
+              '--output-path',
               default='',
               help='Output file/path, defaults to source name/path')
 @click.option('-i',
@@ -52,51 +52,41 @@ DEFAULT_PRESET = 'x265-1080p-mkv.json'
               'stop',
               default=None,
               help='Time at which to stop encoding, default None')
-def cli(input_file, output_file, start, stop, info, sample, preset, dry_run):
+def cli(input_file, output_path, start, stop, info, sample, preset, dry_run):
     """
     A tool for encoding AVC (H264) video files to the more space-efficient
     HEVC (H265) codec using HandBrakeCLI. Accepts a single input video file or
     a directory or tree
     """
     input_path = Path(input_file)
-
-    if not output_file:
-        # If no input is provided, use root of input file with mkv extension
-        output_file = input_file.rsplit('.', 1)[0] + '.mkv'
-    if info:
-        get_info(input_path)
-    elif dry_run:
-        if input_path.is_dir():
-            files = find_vfiles(input_file)
-            for file in files:
-                if sample:
-                    start = 0
-                    stop = 20
-                cmd = make_cmd(file, output_file, preset, start, stop)
-                click.echo(f'Your handbrake dry run is:\n{cmd}')
-                click.echo('')
+    if input_path.is_dir():
+        if output_path:
+            raise RuntimeError('Supplying an output file is not supported '
+                               'for directories')
         else:
-            if sample:
-                start = 0
-                stop = 20
-            cmd = make_cmd(input_file, output_file, preset, start, stop)
-            click.echo('Your handbrake dry run is:\n{}'.format(cmd))
+            if info:
+                get_info(input_path)
+            elif dry_run:
+                run_dry(input_path, output_path, preset, start, stop)
+            else:
+                if input_path.is_dir():
+                    print('Directory support coming soon!  Use --dry-run flag'
+                          ' to see files found for encoding')
+                else:
+                    if sample:
+                        start = 0
+                        stop = 20
+                    cmd = make_cmd(input_file, output_path, preset, start,
+                                   stop).split()
+                    process = Popen(cmd)
+                    while True:
+                        sout = process.communicate()[0]
+                        if process.poll() is not None:
+                            break
+                        if sout:
+                            print(sout)
     else:
-        if input_path.is_dir():
-            print('''
-Directory support coming soon!
-Use --dry-run flag to see files found for encoding
-            ''')
-        else:
-            if sample:
-                start = 0
-                stop = 20
-            cmd = make_cmd(input_file, output_file, preset, start,
-                           stop).split()
-            process = Popen(cmd)
-            while True:
-                sout = process.communicate()[0]
-                if process.poll() is not None:
-                    break
-                if sout:
-                    print(sout)
+        if info:
+            get_info(input_path)
+        if dry_run:
+            run_dry(input_path, output_path, preset, start, stop)

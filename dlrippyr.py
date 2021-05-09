@@ -13,7 +13,7 @@ from subprocess import Popen
 
 import click
 
-from tools import find_vfiles, get_info, make_cmd, run_dry
+from tools import find_vfiles, get_info, make_cmd, make_handbrake, run_dry
 
 DEFAULT_PRESET = 'x265-1080p-mkv.json'
 
@@ -68,25 +68,20 @@ def cli(input_file, output_path, start, stop, info, sample, preset, dry_run):
                 get_info(input_path)
             elif dry_run:
                 run_dry(input_path, output_path, preset, start, stop)
+            elif sample:
+                make_handbrake(input_path,
+                               output_path,
+                               preset,
+                               start=0,
+                               stop=20)
             else:
-                if input_path.is_dir():
-                    print('Directory support coming soon!  Use --dry-run flag'
-                          ' to see files found for encoding')
-                else:
-                    if sample:
-                        start = 0
-                        stop = 20
-                    cmd = make_cmd(input_file, output_path, preset, start,
-                                   stop).split()
-                    process = Popen(cmd)
-                    while True:
-                        sout = process.communicate()[0]
-                        if process.poll() is not None:
-                            break
-                        if sout:
-                            print(sout)
+                make_handbrake(input_path, output_path, preset, start, stop)
     else:
         if info:
             get_info(input_path)
-        if dry_run:
+        elif dry_run:
             run_dry(input_path, output_path, preset, start, stop)
+        elif sample:
+            make_handbrake(input_path, output_path, preset, start=0, stop=20)
+        else:
+            make_handbrake(input_path, output_path, preset, start, stop)

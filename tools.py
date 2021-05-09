@@ -3,13 +3,42 @@ import json
 import subprocess
 from collections import deque
 from pathlib import Path
+from subprocess import Popen
 
-import snoop
-from loguru import logger
+# import snoop
+# from loguru import logger
 
 
 # @snoop
 # @logger.catch
+def make_handbrake(input_path, output_path, preset, start, stop):
+    files = find_vfiles(input_path)
+    if output_path:
+        for item in files:
+            (input_file, _) = item
+            cmd = make_cmd(input_file, output_path, preset, start,
+                           stop).split()
+            process = Popen(cmd)
+            while True:
+                sout = process.communicate()[0]
+                if process.poll() is not None:
+                    break
+                if sout:
+                    print(sout)
+    else:
+        for item in files:
+            (input_file, output_file) = item
+            cmd = make_cmd(input_file, output_file, preset, start,
+                           stop).split()
+            process = Popen(cmd)
+            while True:
+                sout = process.communicate()[0]
+                if process.poll() is not None:
+                    break
+                if sout:
+                    print(sout)
+
+
 def run_dry(input_path, output_path, preset, start, stop):
     files = find_vfiles(input_path)
     if output_path:

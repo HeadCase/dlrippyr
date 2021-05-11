@@ -12,6 +12,7 @@ import subprocess
 from dlrippyr.utils import find_vfiles, get_json, make_cmd, print_meta
 
 
+# Consider splitting this off into make handbrake and run handbrake
 def make_handbrake(input_path, output_path, preset, start, stop):
     files = find_vfiles(input_path)
     if output_path:
@@ -40,6 +41,7 @@ def make_handbrake(input_path, output_path, preset, start, stop):
                     print(sout)
 
 
+# Consider returning make command instead of printing
 def run_dry(input_path, output_path, preset, start, stop):
     files = find_vfiles(input_path)
     if output_path:
@@ -52,6 +54,7 @@ def run_dry(input_path, output_path, preset, start, stop):
             print(make_cmd(input_file, output_file, preset, start, stop))
 
 
+# Consider returning info instead of printing
 def get_info(input_path):
     r"""Print relevant metadata from supplied video file(s)
 

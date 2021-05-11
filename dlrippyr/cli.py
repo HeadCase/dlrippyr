@@ -11,8 +11,7 @@ from pathlib import Path
 
 import click
 
-from dlrippyr.tools import get_info, make_handbrake, run_dry
-
+from dlrippyr.tools import get_info, make_handbrake, run_dry 
 # from tools import get_info
 # import make_handbrake
 # import run_dry

@@ -11,7 +11,11 @@ from pathlib import Path
 
 import click
 
-from tools import get_info, make_handbrake, run_dry
+from dlrippyr.tools import get_info, make_handbrake, run_dry
+
+# from tools import get_info
+# import make_handbrake
+# import run_dry
 
 DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
 

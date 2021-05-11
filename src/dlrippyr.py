@@ -7,15 +7,13 @@ Github: https://github.com/headcase
 Description: A CLI utility for encoding video files
 """
 
-# import re
 from pathlib import Path
-from subprocess import Popen
 
 import click
 
-from tools import find_vfiles, get_info, make_cmd, make_handbrake, run_dry
+from tools import get_info, make_handbrake, run_dry
 
-DEFAULT_PRESET = 'x265-1080p-mkv.json'
+DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
 
 
 @click.command()

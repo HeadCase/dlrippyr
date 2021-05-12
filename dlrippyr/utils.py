@@ -5,7 +5,7 @@ from collections import deque
 from pathlib import Path
 
 
-def print_meta(video_file):
+def probe_meta(video_file):
     """foo!"""
     relevant_tags = {
         'format_name': 'format',
@@ -19,20 +19,19 @@ def print_meta(video_file):
     }
     relevant_data = {}
 
-    metadata = get_json(video_file)
+    raw_meta = get_json(video_file)
 
     for k, v in relevant_tags.items():
         if v == 'streams':
-            relevant_data[k] = metadata[v][0][k]
+            relevant_data[k] = raw_meta[v][0][k]
         else:
-            relevant_data[k] = metadata[v][k]
+            relevant_data[k] = raw_meta[v][k]
     rate_mb = (int(relevant_data['bit_rate']) / 1000**2)
     size_mb = int(relevant_data['size']) / 1024**2
     relevant_data['bit_rate'] = '{} Mb/s'.format(round(rate_mb, 1))
     relevant_data['size'] = '{} MB'.format(round(size_mb, 1))
 
-    for k, v in relevant_data.items():
-        print('{:>18}: {}'.format(k, v))
+    return relevant_data
 
 
 def get_json(video_file):
@@ -66,7 +65,9 @@ def get_json(video_file):
 
 def make_cmd(video_in, video_out, preset, start=None, stop=None):
     """foo!"""
-    preset_name = preset.strip('.json')
+    # Presets being stored in conf dir, which needs to be stripped, along with
+    # json extension
+    preset_name = preset.split('/')[1].strip('.json')
     cmd = 'HandBrakeCLI '
     _in = f'-i {video_in} '
     _out = f'-o {video_out}'

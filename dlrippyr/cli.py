@@ -11,10 +11,7 @@ from pathlib import Path
 
 import click
 
-from dlrippyr.features import get_info, make_handbrake, run_dry 
-# from tools import get_info
-# import make_handbrake
-# import run_dry
+from dlrippyr.features import parse_user_input
 
 DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
 
@@ -59,30 +56,28 @@ def cli(input_file, output_path, start, stop, info, sample, preset, dry_run):
     HEVC (H265) codec using HandBrakeCLI. Accepts a single input video file or
     a directory or tree
     """
+
     input_path = Path(input_file)
+    # Output does not need to be converted to a Path as it is only ever
+    # supplied as a string to HandBrakeCLI
+    user_input = {
+        'input': input_path,
+        'output': output_path,
+        'start': start,
+        'stop': stop,
+        'info': info,
+        'sample': sample,
+        'preset': preset,
+        'dry run': dry_run
+    }
+    # User can supply a directory, which we then parse for any video files
     if input_path.is_dir():
         if output_path:
             raise RuntimeError('Supplying an output file is not supported '
                                'for directories')
         else:
-            if info:
-                get_info(input_path)
-            elif dry_run:
-                run_dry(input_path, output_path, preset, start, stop)
-            elif sample:
-                make_handbrake(input_path,
-                               output_path,
-                               preset,
-                               start=0,
-                               stop=20)
-            else:
-                make_handbrake(input_path, output_path, preset, start, stop)
+            parse_user_input(user_input)
+
+    # User can supply single video file, which we process directly
     else:
-        if info:
-            get_info(input_path)
-        elif dry_run:
-            run_dry(input_path, output_path, preset, start, stop)
-        elif sample:
-            make_handbrake(input_path, output_path, preset, start=0, stop=20)
-        else:
-            make_handbrake(input_path, output_path, preset, start, stop)
+        parse_user_input(user_input)

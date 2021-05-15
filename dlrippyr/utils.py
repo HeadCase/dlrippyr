@@ -121,7 +121,8 @@ def make_cmd(video_in, video_out, preset, start=None, stop=None):
         cmd = cmd + _preset + _in + _start + _stop + _out
     else:
         cmd = cmd + _preset + _in + _out
-    return cmd
+    # Subprocess likes each bit split into a separate string
+    return cmd.split()
 
 
 def find_vfiles(input_path):

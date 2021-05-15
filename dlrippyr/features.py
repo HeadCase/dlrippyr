@@ -91,14 +91,12 @@ def make_handbrake(input_path, output_path, preset, start, stop):
     if output_path:
         for item in files:
             (input_path, _) = item
-            cmd = make_cmd(input_path, output_path, preset, start,
-                           stop).split()
+            cmd = make_cmd(input_path, output_path, preset, start, stop)
             cmd_list.append(cmd)
     else:
         for item in files:
             (input_path, output_path) = item
-            cmd = make_cmd(input_path, output_path, preset, start,
-                           stop).split()
+            cmd = make_cmd(input_path, output_path, preset, start, stop)
             cmd_list.append(cmd)
     return cmd_list
 

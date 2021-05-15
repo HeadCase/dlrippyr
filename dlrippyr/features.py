@@ -28,7 +28,8 @@ def parse_user_input(user_input: dict):
 
     Returns
     -------
-    None.
+    result: list
+         list resulting from input parameters, used for pytest
     """
     info = user_input['info']
     dry_run = user_input['dry run']
@@ -38,24 +39,30 @@ def parse_user_input(user_input: dict):
     preset = user_input['preset']
     start = user_input['start']
     stop = user_input['stop']
+    test = user_input['test']
     if info:
         metadata = get_info(input_path)
         for line in metadata:
             print(line)
+        result = metadata
     elif dry_run:
         cmd_list = make_handbrake(input_path, output_path, preset, start, stop)
         for cmd in cmd_list:
             print(' '.join(cmd))
+        result = cmd_list
     elif sample:
         cmd_list = make_handbrake(input_path,
                                   output_path,
                                   preset,
                                   start=0,
                                   stop=20)
-        run_handbrake(cmd_list)
+        run_handbrake(cmd_list, test)
+        result = cmd_list
     else:
         cmd_list = make_handbrake(input_path, output_path, preset, start, stop)
-        run_handbrake(cmd_list)
+        run_handbrake(cmd_list, test)
+        result = cmd_list
+    return result
 
 
 def make_handbrake(input_path, output_path, preset, start, stop):
@@ -101,7 +108,7 @@ def make_handbrake(input_path, output_path, preset, start, stop):
     return cmd_list
 
 
-def run_handbrake(cmd_list):
+def run_handbrake(cmd_list, test=False):
     """Parses and executes HandBrakeCLI commands under a system subprocess
 
     Parameters
@@ -113,16 +120,19 @@ def run_handbrake(cmd_list):
     -------
     None.
     """
-    for cmd in cmd_list:
-        process = subprocess.Popen(cmd)
-        # Regurgitate HandBrakeCLI back to stdout after it is gobbled up by
-        # subprocess
-        while True:
-            sout = process.communicate()[0]
-            if process.poll() is not None:
-                break
-            if sout:
-                print(sout)
+    if not test:
+        for cmd in cmd_list:
+            process = subprocess.Popen(cmd)
+            # Regurgitate HandBrakeCLI back to stdout after it is gobbled up by
+            # subprocess
+            while True:
+                sout = process.communicate()[0]
+                if process.poll() is not None:
+                    break
+                if sout:
+                    print(sout)
+    else:
+        return
 
 
 def get_info(input_path):

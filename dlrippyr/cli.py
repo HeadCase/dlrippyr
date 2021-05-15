@@ -71,7 +71,8 @@ def cli(input_file, output_path, start, stop, info, sample, preset, dry_run):
         'info': info,
         'sample': sample,
         'preset': preset,
-        'dry run': dry_run
+        'dry run': dry_run,
+        'test': False
     }
     # User can supply a directory, which we then parse for any video files
     if input_path.is_dir():

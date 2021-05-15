@@ -6,21 +6,26 @@ from dlrippyr import features, utils
 TEST_FILE = Path('samples/Wentworth.mov')
 TEST_OUT = Path('samples/Wentworth.mp4')
 PRESET = 'conf/x265-1080p-mkv.json'
-CMD_DICT = {
-    'input': TEST_FILE,
-    'output': '',
-    'start': None,
-    'stop': None,
-    'info': False,
-    'sample': False,
-    'preset': PRESET,
-    'dry run': False,
-    'test': True
-}
+
+
+def make_dict():
+    CMD_DICT = {
+        'input': TEST_FILE,
+        'output': '',
+        'start': None,
+        'stop': None,
+        'info': False,
+        'sample': False,
+        'preset': PRESET,
+        'dry run': False,
+        'test': True
+    }
+    return CMD_DICT
 
 
 def test_file_dry_run():
     """Test for dry run flag on a single video file"""
+    CMD_DICT = make_dict()
     CMD_DICT['dry run'] = True
     expect_no_out = [[
         'HandBrakeCLI', '--preset-import-file', 'conf/x265-1080p-mkv.json',
@@ -41,16 +46,15 @@ def test_file_dry_run():
     assert dry_no_out == expect_no_out
     assert dry_out == expect_out
 
-    CMD_DICT['dry run'] = False
-
 
 def test_file_sample():
     """Test for sample flag on a single video file"""
+    CMD_DICT = make_dict()
     CMD_DICT['sample'] = True
     expect = [[
         'HandBrakeCLI', '--preset-import-file', 'conf/x265-1080p-mkv.json',
         '-Z', 'x265-1080p-mkv', '-i', 'samples/Wentworth.mov', '--start-at',
-        'seconds:0', '--stop-at', 'seconds:20', '-o', 'samples/Wentworth.mp4'
+        'seconds:0', '--stop-at', 'seconds:20', '-o', 'samples/Wentworth.mkv'
     ]]
 
     assert features.parse_user_input(CMD_DICT) == expect
@@ -60,6 +64,7 @@ def test_file_sample():
 
 def test_file_get_info():
     """Test for get info flag on single video file"""
+    CMD_DICT = make_dict()
     CMD_DICT['info'] = True
     expect = [
         'Metadata for samples/Wentworth.mov',
@@ -72,4 +77,16 @@ def test_file_get_info():
 
     assert features.parse_user_input(CMD_DICT) == expect
 
-    CMD_DICT['info'] = False
+
+def test_file_run_hb():
+    """Test for encoding run"""
+    CMD_DICT = make_dict()
+    expect = [[
+        'HandBrakeCLI', '--preset-import-file', 'conf/x265-1080p-mkv.json',
+        '-Z', 'x265-1080p-mkv', '-i', 'samples/Wentworth.mov', '-o',
+        'samples/Wentworth.mkv'
+    ]]
+
+    # 'Run' dlrippyr with all flags set to false; i.e. just provide an input
+    # file
+    assert features.parse_user_input(CMD_DICT) == expect

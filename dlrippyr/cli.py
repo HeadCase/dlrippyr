@@ -60,6 +60,9 @@ def cli(input_file, output_path, start, stop, info, sample, preset, dry_run):
     input_path = Path(input_file)
     # Output does not need to be converted to a Path as it is only ever
     # supplied as a string to HandBrakeCLI
+
+    # Currently bundling command-line opts/args into a dict for parsing. What
+    # is the smarter way to do this?
     user_input = {
         'input': input_path,
         'output': output_path,

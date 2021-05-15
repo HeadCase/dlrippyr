@@ -107,7 +107,7 @@ def make_cmd(video_in, video_out, preset, start=None, stop=None):
     # Presets are being stored in conf dir, which needs to be stripped, along
     # with json extension
     preset_name = preset.split('/')[1].strip('.json')
-    cmd = 'HandBrakeCLI '
+    cmd = 'nice -n 10 HandBrakeCLI '
     _in = f'-i {video_in} '
     _out = f'-o {video_out}'
     _preset = f'--preset-import-file {preset} -Z {preset_name} '

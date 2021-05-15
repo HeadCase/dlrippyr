@@ -28,15 +28,15 @@ def test_file_dry_run():
     CMD_DICT = make_dict()
     CMD_DICT['dry run'] = True
     expect_no_out = [[
-        'HandBrakeCLI', '--preset-import-file', 'conf/x265-1080p-mkv.json',
-        '-Z', 'x265-1080p-mkv', '-i', 'samples/Wentworth.mov', '-o',
-        'samples/Wentworth.mkv'
+        'nice', '-n', '10', 'HandBrakeCLI', '--preset-import-file',
+        'conf/x265-1080p-mkv.json', '-Z', 'x265-1080p-mkv', '-i',
+        'samples/Wentworth.mov', '-o', 'samples/Wentworth.mkv'
     ]]
 
     expect_out = [[
-        'HandBrakeCLI', '--preset-import-file', 'conf/x265-1080p-mkv.json',
-        '-Z', 'x265-1080p-mkv', '-i', 'samples/Wentworth.mov', '-o',
-        'samples/Wentworth.mp4'
+        'nice', '-n', '10', 'HandBrakeCLI', '--preset-import-file',
+        'conf/x265-1080p-mkv.json', '-Z', 'x265-1080p-mkv', '-i',
+        'samples/Wentworth.mov', '-o', 'samples/Wentworth.mp4'
     ]]
 
     dry_no_out = features.parse_user_input(CMD_DICT)
@@ -52,9 +52,10 @@ def test_file_sample():
     CMD_DICT = make_dict()
     CMD_DICT['sample'] = True
     expect = [[
-        'HandBrakeCLI', '--preset-import-file', 'conf/x265-1080p-mkv.json',
-        '-Z', 'x265-1080p-mkv', '-i', 'samples/Wentworth.mov', '--start-at',
-        'seconds:0', '--stop-at', 'seconds:20', '-o', 'samples/Wentworth.mkv'
+        'nice', '-n', '10', 'HandBrakeCLI', '--preset-import-file',
+        'conf/x265-1080p-mkv.json', '-Z', 'x265-1080p-mkv', '-i',
+        'samples/Wentworth.mov', '--start-at', 'seconds:0', '--stop-at',
+        'seconds:20', '-o', 'samples/Wentworth.mkv'
     ]]
 
     assert features.parse_user_input(CMD_DICT) == expect
@@ -81,10 +82,11 @@ def test_file_get_info():
 def test_file_run_hb():
     """Test for encoding run"""
     CMD_DICT = make_dict()
+    CMD_DICT['sample'] = False
     expect = [[
-        'HandBrakeCLI', '--preset-import-file', 'conf/x265-1080p-mkv.json',
-        '-Z', 'x265-1080p-mkv', '-i', 'samples/Wentworth.mov', '-o',
-        'samples/Wentworth.mkv'
+        'nice', '-n', '10', 'HandBrakeCLI', '--preset-import-file',
+        'conf/x265-1080p-mkv.json', '-Z', 'x265-1080p-mkv', '-i',
+        'samples/Wentworth.mov', '-o', 'samples/Wentworth.mkv'
     ]]
 
     # 'Run' dlrippyr with all flags set to false; i.e. just provide an input

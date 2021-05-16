@@ -113,10 +113,9 @@ def cli(args, output_path, start, stop, info, sample, preset, dry_run, force):
 
             meta_check = probe_meta(input_file)
             if (meta_check['codec_name'] == 'hevc') and not force:
-                print('This file is already encoded in HEVC and will be'
-                      ' skipped: '
-                      f'{input_file}')
-                skips.append(input_file)
+                print('The file you supplied is already encoded in HEVC and'
+                      ' will be skipped. You can override this behaviour with'
+                      ' --force')
             # If the user has not supplied an output file, we'll use the
             # automatic one from find_vfiles
             else:
@@ -128,5 +127,5 @@ def cli(args, output_path, start, stop, info, sample, preset, dry_run, force):
         print('The following files were skipped as they are already encoded'
               ' in HEVC:')
         for file in skips:
-            print(file)
+            print(f'     {file}')
         print('You can force their encoding with --force')

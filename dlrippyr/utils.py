@@ -4,6 +4,8 @@ import subprocess
 from collections import deque
 from pathlib import Path
 
+import snoop
+
 
 def probe_meta(video_file):
     r"""Acquires relevant metadata from supplied video file
@@ -107,22 +109,30 @@ def make_cmd(video_in, video_out, preset, start=None, stop=None):
     # Presets are being stored in conf dir, which needs to be stripped, along
     # with json extension
     preset_name = preset.split('/')[1].strip('.json')
-    cmd = 'nice -n 10 HandBrakeCLI '
-    _in = f'-i {video_in} '
-    _out = f'-o {video_out}'
-    _preset = f'--preset-import-file {preset} -Z {preset_name} '
+    cmd = 'nice -n 10 HandBrakeCLI '.split()
+    # Calling string on a pathlib.Path sorts of things like spaces and OS
+    # issues
+    _in = ['-i', str(video_in)]
+    _out = ['-o', str(video_out)]
+    _preset = f'--preset-import-file {preset} -Z {preset_name} '.split()
     _start = ''
     _stop = ''
-    if start != None:
-        _start = f'--start-at seconds:{start} '
-    if stop != None:
-        _stop = f'--stop-at seconds:{stop} '
+    if start is not None:
+        _start = f'--start-at seconds:{start} '.split()
+    if stop is not None:
+        _stop = f'--stop-at seconds:{stop} '.split()
     if (_start or _stop):
-        cmd = cmd + _preset + _in + _start + _stop + _out
+        cmd.extend(_preset)
+        cmd.extend(_in)
+        cmd.extend(_start)
+        cmd.extend(_stop)
+        cmd.extend(_out)
     else:
-        cmd = cmd + _preset + _in + _out
+        cmd.extend(_preset)
+        cmd.extend(_in)
+        cmd.extend(_out)
     # Subprocess likes each bit split into a separate string
-    return cmd.split()
+    return cmd
 
 
 def find_vfiles(input_path):

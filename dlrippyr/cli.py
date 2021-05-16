@@ -10,6 +10,7 @@ Description: A CLI utility for encoding video files
 from pathlib import Path
 
 import click
+import snoop
 
 from dlrippyr.features import parse_user_input
 from dlrippyr.utils import find_vfiles, probe_meta
@@ -56,6 +57,7 @@ DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
               'stop',
               default=None,
               help='Time at which to stop encoding, default None')
+# @snoop
 def cli(args, output_path, start, stop, info, sample, preset, dry_run, force):
     """
     A tool for encoding AVC (H264) video files to the more space-efficient

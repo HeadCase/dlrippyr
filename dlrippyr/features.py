@@ -40,75 +40,28 @@ def parse_user_input(user_input: dict):
     start = user_input['start']
     stop = user_input['stop']
     test = user_input['test']
+
     if info:
         metadata = get_info(input_path)
         for line in metadata:
             print(line)
-        result = metadata
+        result = info
     elif dry_run:
-        cmd_list = make_handbrake(input_path, output_path, preset, start, stop)
-        for cmd in cmd_list:
-            print(' '.join(cmd))
-        result = cmd_list
+        cmd = make_cmd(input_path, output_path, preset, start, stop)
+        print(' '.join(cmd))
+        result = cmd
     elif sample:
-        cmd_list = make_handbrake(input_path,
-                                  output_path,
-                                  preset,
-                                  start=0,
-                                  stop=20)
-        run_handbrake(cmd_list, test)
-        result = cmd_list
+        cmd = make_cmd(input_path, output_path, preset, start=0, stop=20)
+        run_handbrake(cmd, test)
+        result = cmd
     else:
-        cmd_list = make_handbrake(input_path, output_path, preset, start, stop)
-        run_handbrake(cmd_list, test)
-        result = cmd_list
+        cmd = make_cmd(input_path, output_path, preset, start, stop)
+        run_handbrake(cmd, test)
+        result = cmd
     return result
 
 
-def make_handbrake(input_path, output_path, preset, start, stop):
-    """Makes a list of strings representing HandBrakeCLI command(s) to run
-
-    Parameters
-    ----------
-    input_path: Path
-         pathlib.Path object specifying the pathname of the input video file
-         to be encoded
-    output_path: str
-         string representing the path of the output file to be created by
-         encoding
-    preset: str
-         string representing the path of the preset file to be used for
-         encoding
-    start: int
-         integer indicating the start (in seconds) from which to output the
-         encoding
-    stop: int
-         integer indicating the end (in seconds) from which to no longer
-         output the encoding
-
-    Returns
-    -------
-    cmd_list: list
-         List of handbrake command(s), each element being a string
-    """
-    # find_vfiles will give us back a list of tuples of (input, output) for
-    # supplied file or directory
-    files = find_vfiles(input_path)
-    cmd_list = []
-    if output_path:
-        for item in files:
-            (input_path, _) = item
-            cmd = make_cmd(input_path, output_path, preset, start, stop)
-            cmd_list.append(cmd)
-    else:
-        for item in files:
-            (input_path, output_path) = item
-            cmd = make_cmd(input_path, output_path, preset, start, stop)
-            cmd_list.append(cmd)
-    return cmd_list
-
-
-def run_handbrake(cmd_list, test=False):
+def run_handbrake(cmd, test=False):
     """Parses and executes HandBrakeCLI commands under a system subprocess
 
     Parameters
@@ -121,16 +74,16 @@ def run_handbrake(cmd_list, test=False):
     None.
     """
     if not test:
-        for cmd in cmd_list:
-            process = subprocess.Popen(cmd)
-            # Regurgitate HandBrakeCLI back to stdout after it is gobbled up by
-            # subprocess
-            while True:
-                sout = process.communicate()[0]
-                if process.poll() is not None:
-                    break
-                if sout:
-                    print(sout)
+        # for cmd in cmd_list:
+        process = subprocess.Popen(cmd)
+        # Regurgitate HandBrakeCLI back to stdout after it is gobbled up by
+        # subprocess
+        while True:
+            sout = process.communicate()[0]
+            if process.poll() is not None:
+                break
+            if sout:
+                print(sout)
     else:
         return
 

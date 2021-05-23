@@ -41,10 +41,13 @@ def parse_user_input(user_input: dict):
     stop = user_input['stop']
     test = user_input['test']
 
+    logger.info(f'Processing {input_path}')
+
     if info:
         metadata = get_info(input_path)
         for line in metadata:
-            print(line)
+            # print(line)
+            logger.info(f'{line}')
         result = info
     elif dry_run:
         cmd = make_cmd(input_path, output_path, preset, start, stop)

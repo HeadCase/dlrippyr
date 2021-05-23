@@ -10,7 +10,7 @@ Description: A CLI utility for encoding video files
 from pathlib import Path
 
 import click
-import snoop
+from loguru import logger
 
 from dlrippyr.features import parse_user_input
 from dlrippyr.utils import find_vfiles, probe_meta
@@ -58,7 +58,7 @@ DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
               'stop',
               default=None,
               help='Time at which to stop encoding, default None')
-# @snoop
+# @logger.catch
 def cli(args, output_path, start, stop, info, sample, preset, dry_run, force):
     """
     A tool for encoding AVC (H264) video files to the more space-efficient
@@ -66,6 +66,12 @@ def cli(args, output_path, start, stop, info, sample, preset, dry_run, force):
     files and/or directories to parse. Directories are searched recursively
     for video files, which are then processed.
     """
+    # Instantiate the logger
+    logger.add("log/dlrippyr.log",
+               rotation="10MB",
+               colorize=True,
+               format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}")
+
     # List of skipped files to report back to user at the end
     skips = []
 

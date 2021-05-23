@@ -24,7 +24,8 @@ DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
 @click.option('-o',
               '--output-path',
               default='',
-              help='Output file/path, defaults to source name/path')
+              help='Desired output file name; currently must be supplied'
+              ' as an option, and therefore comes before any input args')
 @click.option('-i',
               '--info',
               is_flag=True,
@@ -39,7 +40,7 @@ DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
               '--dry-run',
               is_flag=True,
               default=False,
-              help='Print to screen command which would have been run')
+              help='Print to screen the command which would have been run')
 @click.option('-f',
               '--force',
               is_flag=True,
@@ -61,8 +62,9 @@ DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
 def cli(args, output_path, start, stop, info, sample, preset, dry_run, force):
     """
     A tool for encoding AVC (H264) video files to the more space-efficient
-    HEVC (H265) codec using HandBrakeCLI. Accepts a single input video file or
-    a directory or tree
+    HEVC (H265) codec using HandBrakeCLI. Accepts any number (or mix) of video
+    files and/or directories to parse. Directories are searched recursively
+    for video files, which are then processed.
     """
     # List of skipped files to report back to user at the end
     skips = []

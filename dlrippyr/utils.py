@@ -84,6 +84,7 @@ def get_json(video_file):
     # samples/shotgun.mkv
 
 
+# TODO: Abstract this function out into a class
 def make_cmd(video_in, video_out, preset, start=None, stop=None):
     """Builds a HandBrakeCLI command from supplied arguments
 

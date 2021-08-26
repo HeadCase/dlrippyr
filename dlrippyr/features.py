@@ -31,7 +31,6 @@ def parse_user_input(user_input: dict):
     result: list
          list resulting from input parameters, used for pytest
     """
-    info = user_input['info']
     dry_run = user_input['dry run']
     sample = user_input['sample']
     input_path = user_input['input']
@@ -43,13 +42,7 @@ def parse_user_input(user_input: dict):
 
     logger.info(f'Processing {input_path}')
 
-    if info:
-        metadata = get_info(input_path)
-        for line in metadata:
-            # print(line)
-            logger.info(f'{line}')
-        result = info
-    elif dry_run:
+    if dry_run:
         cmd = make_cmd(input_path, output_path, preset, start, stop)
         print(' '.join(cmd))
         result = cmd
@@ -89,42 +82,3 @@ def run_handbrake(cmd, test=False):
                 print(sout)
     else:
         return
-
-
-def get_info(input_path):
-    r"""Acquire metadata, using ffprobe, for the supplied file/dir
-
-    Parameters
-    ----------
-    input_path: str
-        Path name to a single video file in the form of a str object.
-        Alternatively, directory which is parsed recursively to discover video
-        files. Video file(s) are passed to `ffparse`
-
-    Returns
-    -------
-    printout: list
-        A printout in the form of a list, which each string element
-        representing a line to be printed
-    """
-    printout = []
-    if input_path.is_dir():
-        files = find_vfiles(input_path)
-        for item in files:
-            (file, _) = item
-            printout.append(f'Metadata for {file}')
-            metadata = probe_meta(file)  # returns dictionary
-            for k, v in metadata.items():
-                printout.append('{:>18}: {}'.format(k, v))
-            # Tack on a carriage return
-            printout.append('')
-
-    else:
-        printout.append(f'Metadata for {input_path}')
-        metadata = probe_meta(input_path)
-        for k, v in metadata.items():
-            printout.append('{:>18}: {}'.format(k, v))
-        # Tack on a carriage return
-        printout.append('')
-
-    return printout

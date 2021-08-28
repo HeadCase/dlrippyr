@@ -1,114 +1,114 @@
 #!/usr/bin/env python
 import json
+import pdb
 import subprocess
 from pathlib import Path
-
-import click
-import snoop
 
 EXTS = ['mkv', 'mp4', 'mov', 'wmv', 'avi']
 
 
-# TODO: Abstract into a metadata class
-# BUG: get_json expects a string but we want to pass Path(s) to this function
-def probe_meta(video_file):
-    r"""Acquires relevant metadata from supplied video file
-
-    Parameters
-    ----------
-    video_file: str
-        Path name to a video file in the form of a str object. Passed on to
-        get_json
-
-    Returns
-    -------
-    relevant_data:  dict
-         Dictionary of relevant metadata; keys for category (e.g. bit rate or
-         file size) and values for values (e.g. 3.6 Mbps or 25MB)
-    """
-    # Define the metadata we actually want back
-    relevant_tags = {
-        'format_name': 'format',
-        'codec_name': 'streams',
-        'profile': 'streams',
-        'avg_frame_rate': 'streams',
-        'height': 'streams',
-        'width': 'streams',
-        'bit_rate': 'format',
-        'size': 'format',
-    }
-    relevant_data = {}
-
-    # json-formatted 'bulk' metadata
-    raw_meta = get_json(str(video_file))
-
-    # Parse the bulk metadata to get the relevant bits we want
-    for k, v in relevant_tags.items():
-        if v == 'streams':
-            relevant_data[k] = raw_meta[v][0][k]
+class Metadata:
+    """doc"""
+    def __init__(self, path):
+        # Track the path of the source file
+        if not isinstance(path, Path):
+            self.path = make_path(path)
         else:
-            relevant_data[k] = raw_meta[v][k]
-    # Tinker with units and formatting
-    rate_mb = (int(relevant_data['bit_rate']) / 1000**2)
-    size_mb = int(relevant_data['size']) / 1024**2
-    relevant_data['bit_rate'] = '{} Mb/s'.format(round(rate_mb, 1))
-    relevant_data['size'] = '{} MB'.format(round(size_mb, 1))
+            self.path = path
 
-    return relevant_data
+        self.format_name = None
+        self.codec_name = None
+        self.profile = None
+        self.avg_frame_rate = None
+        self.height = None
+        self.width = None
+        self.bit_rate = None
+        self.size = None
+
+        # call initialisation method to populate attributes from json
+
+        # get json from self
+        # parse json
+        # populate attributes from parsed result
+        _json = self.get_json()
+        self.parse_json(_json)
+
+    def get_json(self):
+        r"""Execute ffprobe under subprocess to acquire json-formatted metadata
+
+        ### Parameters
+        1. video_file: str
+            - Path name to a video file in the form of a str object. Passed to
+              `ffprobe`
+
+        ### Returns
+        _json:  str
+             Bulk/raw metadata of input video file as a string in JSON format
+        """
+
+        # ffprobe incantation to get metadata how we want it
+        raw = subprocess.run([
+            'ffprobe', '-hide_banner', '-v', 'panic', '-print_format', 'json',
+            '-show_format', '-show_streams', '-select_streams', 'v:0',
+            f'{self.path}'
+        ],
+                             stdout=subprocess.PIPE)
+        _json = json.loads(raw.stdout)
+
+        return _json
+
+    def parse_json(self, _json):
+
+        relevant_tags = {
+            'streams':
+            ['codec_name', 'profile', 'avg_frame_rate', 'height', 'width'],
+            'format': ['format_name', 'bit_rate', 'size'],
+        }
+
+        # json-formatted 'bulk' metadata
+
+        # Parse the bulk metadata to get the relevant bits we want
+        for k, v in relevant_tags.items():
+            if k == 'streams':
+                for field in v:
+                    setattr(self, field, _json[k][0][field])
+            else:
+                for field in v:
+                    if field == 'bit_rate':
+                        # Convert the bit rate to Mb/s
+                        _json[k][field] = (int(_json[k][field]) / 1000**2)
+                    elif field == 'size':
+                        # Convert the video file size to MBs
+                        _json[k][field] = (int(_json[k][field]) / 1024**2)
+                    setattr(self, field, _json[k][field])
+
+        # Do I need to return self??
+        # return self
+
+    def __repr__(self):
+        pass
+
+    def __str__(self):
+        f_bit_rate = f'{round(self.bit_rate, 1)} Mb/s'
+        f_size = f'{round(self.size, 1)} MB'
+
+        return (f'      File: {self.path}\n'
+                f'    Format: {self.format_name:<12}\n'
+                f'     Codec: {self.codec_name:<12}\n'
+                f'   Profile: {self.profile:<12}\n'
+                f'   Average: {self.avg_frame_rate:<12}\n'
+                f'    Height: {self.height:<12}\n'
+                f'     Width: {self.width:<12}\n'
+                f'  Bit Rate: {f_bit_rate:<12}\n'
+                f'      Size: {f_size:<12}\n')
 
 
-def get_json(video_file):
-    r"""Execute ffprobe under subprocess to acquire json-formatted metadata
-
-    ### Parameters
-    1. video_file: str
-        - Path name to a video file in the form of a str object. Passed to
-          `ffprobe`
-
-    ### Returns
-    _json:  str
-         Bulk/raw metadata of input video file as a string in JSON format
-    """
-
-    # ffprobe incantation to get metadata how we want it
-    raw = subprocess.run([
-        'ffprobe', '-hide_banner', '-v', 'panic', '-print_format', 'json',
-        '-show_format', '-show_streams', '-select_streams', 'v:0',
-        f'{video_file}'
-    ],
-                         stdout=subprocess.PIPE)
-    _json = json.loads(raw.stdout)
-
-    return _json
-
-    # ffprobe incantation for posterity:
-    # ffprobe -hide_banner -print_format json -show_streams -select_streams v
-    # samples/shotgun.mkv
-
-
-def print_metadata(metadata: dict):
-    """ Print metadata to stdout
-
-
-    ### Parameters
-    1. metadata: Path
-        - Metadata for a recognised video file
-
-    ### Returns
-    1. None
-        - Printout
-    """
-    for k, v in metadata.items():
-        click.echo(f'{k:>18}: {v}')
-    click.echo('')
-
-
-def make_path(user_arg: str) -> Path:
+def make_path(arg: str) -> Path:
     """ Convert user input argument in the form of a string to a pathlib.Path
     object
     """
 
-    vpath = Path(user_arg).resolve()
+    vpath = Path(arg).resolve()
 
     return vpath
 

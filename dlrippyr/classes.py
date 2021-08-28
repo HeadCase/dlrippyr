@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import json
-import pdb
 import subprocess
 from pathlib import Path
 
-EXTS = ['mkv', 'mp4', 'mov', 'wmv', 'avi']
+from dlrippyr import utils
+
+# EXTS = ['mkv', 'mp4', 'mov', 'wmv', 'avi']
 
 
 class Metadata:
@@ -12,7 +13,7 @@ class Metadata:
     def __init__(self, path):
         # Track the path of the source file
         if not isinstance(path, Path):
-            self.path = make_path(path)
+            self.path = utils.make_path(path)
         else:
             self.path = path
 
@@ -22,14 +23,10 @@ class Metadata:
         self.avg_frame_rate = None
         self.height = None
         self.width = None
-        self.bit_rate = None
-        self.size = None
+        self.bit_rate = int()
+        self.size = int()
 
-        # call initialisation method to populate attributes from json
-
-        # get json from self
-        # parse json
-        # populate attributes from parsed result
+        # call initialisation methods to populate attributes from json
         _json = self.get_json()
         self.parse_json(_json)
 
@@ -65,8 +62,6 @@ class Metadata:
             'format': ['format_name', 'bit_rate', 'size'],
         }
 
-        # json-formatted 'bulk' metadata
-
         # Parse the bulk metadata to get the relevant bits we want
         for k, v in relevant_tags.items():
             if k == 'streams':
@@ -82,11 +77,8 @@ class Metadata:
                         _json[k][field] = (int(_json[k][field]) / 1024**2)
                     setattr(self, field, _json[k][field])
 
-        # Do I need to return self??
-        # return self
-
     def __repr__(self):
-        pass
+        return (f'{self.__class__.__name__}("{self.path}")')
 
     def __str__(self):
         f_bit_rate = f'{round(self.bit_rate, 1)} Mb/s'
@@ -103,40 +95,39 @@ class Metadata:
                 f'      Size: {f_size:<12}\n')
 
 
-def make_path(arg: str) -> Path:
-    """ Convert user input argument in the form of a string to a pathlib.Path
-    object
-    """
+# def make_path(arg: str) -> Path:
+#     """ Convert user input argument in the form of a string to a pathlib.Path
+#     object
+#     """
 
-    vpath = Path(arg).resolve()
+#     vpath = Path(arg).resolve()
 
-    return vpath
+#     return vpath
 
+# def find_vfiles(user_arg: str) -> set:
+#     """Find video files subject to the supplied path argument
 
-def find_vfiles(user_arg: str) -> set:
-    """Find video files subject to the supplied path argument
+#     ### Paramters
+#     1. user_arg: str
+#         - A str representing either a file or directory
 
-    ### Paramters
-    1. user_arg: str
-        - A str representing either a file or directory
+#     ### Returns
+#     - vfiles: set
+#         - A set of the absolute paths for all discovered video files
+#     """
+#     vfiles = set()
+#     vpath = make_path(user_arg)
 
-    ### Returns 
-    - vfiles: set 
-        - A set of the absolute paths for all discovered video files
-    """
-    vfiles = set()
-    vpath = make_path(user_arg)
+#     if vpath.is_file():
+#         vfiles.add(vpath)
+#     elif vpath.is_dir():
+#         cwd = Path(vpath)
+#         glob = list()
+#         # Build up the paths list with tuples of (input, output)
+#         for ext in EXTS:
+#             glob.extend(cwd.rglob(f'*{ext}'))
+#             glob.extend(cwd.rglob(f'*{ext.upper()}'))
+#             for path in glob:
+#                 vfiles.add(path)
 
-    if vpath.is_file():
-        vfiles.add(vpath)
-    elif vpath.is_dir():
-        cwd = Path(vpath)
-        glob = list()
-        # Build up the paths list with tuples of (input, output)
-        for ext in EXTS:
-            glob.extend(cwd.rglob(f'*{ext}'))
-            glob.extend(cwd.rglob(f'*{ext.upper()}'))
-            for path in glob:
-                vfiles.add(path)
-
-    return vfiles
+#     return vfiles

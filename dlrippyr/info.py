@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 import click
-import snoop
 
-from dlrippyr.file import Metadata, find_vfiles
+from dlrippyr.classes import Metadata
+from dlrippyr.utils import find_vfiles
 
 
 @click.command()
 @click.argument('args', nargs=-1)
 def info(args, print=True):
-    # ensures we don't pickup unforeseen duplicates
+    # set() ensures we don't pickup unforeseen duplicates
     flist = set()
     objs = []
 

@@ -30,6 +30,23 @@ class Metadata:
         _json = self.get_json()
         self.parse_json(_json)
 
+    def __repr__(self):
+        return (f'{self.__class__.__name__}("{self.path}")')
+
+    def __str__(self):
+        f_bit_rate = f'{round(self.bit_rate, 1)} Mb/s'
+        f_size = f'{round(self.size, 1)} MB'
+
+        return (f'      File: {self.path}\n'
+                f'    Format: {self.format_name:<12}\n'
+                f'     Codec: {self.codec_name:<12}\n'
+                f'   Profile: {self.profile:<12}\n'
+                f'   Average: {self.avg_frame_rate:<12}\n'
+                f'    Height: {self.height:<12}\n'
+                f'     Width: {self.width:<12}\n'
+                f'  Bit Rate: {f_bit_rate:<12}\n'
+                f'      Size: {f_size:<12}\n')
+
     def get_json(self):
         r"""Execute ffprobe under subprocess to acquire json-formatted metadata
 
@@ -76,23 +93,6 @@ class Metadata:
                         # Convert the video file size to MBs
                         _json[k][field] = (int(_json[k][field]) / 1024**2)
                     setattr(self, field, _json[k][field])
-
-    def __repr__(self):
-        return (f'{self.__class__.__name__}("{self.path}")')
-
-    def __str__(self):
-        f_bit_rate = f'{round(self.bit_rate, 1)} Mb/s'
-        f_size = f'{round(self.size, 1)} MB'
-
-        return (f'      File: {self.path}\n'
-                f'    Format: {self.format_name:<12}\n'
-                f'     Codec: {self.codec_name:<12}\n'
-                f'   Profile: {self.profile:<12}\n'
-                f'   Average: {self.avg_frame_rate:<12}\n'
-                f'    Height: {self.height:<12}\n'
-                f'     Width: {self.width:<12}\n'
-                f'  Bit Rate: {f_bit_rate:<12}\n'
-                f'      Size: {f_size:<12}\n')
 
 
 # def make_path(arg: str) -> Path:

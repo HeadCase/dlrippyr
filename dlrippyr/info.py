@@ -10,15 +10,15 @@ from dlrippyr.utils import find_vfiles
 @click.argument('args', nargs=-1)
 def info(args, print=True):
     # set() ensures we don't pickup unforeseen duplicates
-    flist = set()
+    f_list = set()
     objs = []
 
     # Arguments come in from command
     # line as a tuple, even singletons
-    for val in args:
-        flist = find_vfiles(val)
+    for path in args:
+        f_list = find_vfiles(path)
 
-    for item in sorted(flist):
+    for item in sorted(f_list):
         meta = Metadata(item)
         objs.append(meta)
         if print:

@@ -5,8 +5,6 @@ from pathlib import Path
 
 from dlrippyr import utils
 
-# EXTS = ['mkv', 'mp4', 'mov', 'wmv', 'avi']
-
 
 class Metadata:
     """doc"""

@@ -9,7 +9,7 @@ Description: A CLI utility for encoding video files
 
 import click
 
-from dlrippyr import info
+from dlrippyr import convert, info
 
 # from dlrippyr import convert, info, sample
 
@@ -20,6 +20,6 @@ def cli():
     pass
 
 
-# cli.add_command(convert)
 # cli.add_command(sample)
+cli.add_command(convert)
 cli.add_command(info)

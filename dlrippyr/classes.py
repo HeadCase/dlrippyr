@@ -1,37 +1,39 @@
 #!/usr/bin/env python
 import json
 import subprocess
+from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Dict, List, Optional
 
 from dlrippyr import utils
 
 
 class Metadata:
     """doc"""
-    def __init__(self, path):
+    format_name: str
+    codec_name: str
+    profile: str
+    avg_frame_rate: str
+    height: str
+    width: str
+    bit_rate: int
+    size: int
+
+    def __init__(self, path) -> None:
         # Track the path of the source file
         if not isinstance(path, Path):
             self.path = utils.make_path(path)
         else:
             self.path = path
 
-        self.format_name = None
-        self.codec_name = None
-        self.profile = None
-        self.avg_frame_rate = None
-        self.height = None
-        self.width = None
-        self.bit_rate = int()
-        self.size = int()
-
         # call initialisation methods to populate attributes from json
         _json = self.get_json()
         self.parse_json(_json)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'{self.__class__.__name__}("{self.path}")')
 
-    def __str__(self):
+    def __str__(self) -> str:
         f_bit_rate = f'{round(self.bit_rate, 1)} Mb/s'
         f_size = f'{round(self.size, 1)} MB'
 
@@ -45,7 +47,7 @@ class Metadata:
                 f'  Bit Rate: {f_bit_rate:<12}\n'
                 f'      Size: {f_size:<12}\n')
 
-    def get_json(self):
+    def get_json(self) -> Dict:
         r"""Execute ffprobe under subprocess to acquire json-formatted metadata
 
         ### Parameters
@@ -69,7 +71,7 @@ class Metadata:
 
         return _json
 
-    def parse_json(self, _json):
+    def parse_json(self, _json: Dict) -> None:
 
         relevant_tags = {
             'streams':
@@ -93,39 +95,125 @@ class Metadata:
                     setattr(self, field, _json[k][field])
 
 
-# def make_path(arg: str) -> Path:
-#     """ Convert user input argument in the form of a string to a pathlib.Path
-#     object
-#     """
+class BasicJob(ABC):
+    input: Path
+    output: Optional[Path]
+    preset: str
+    cmd: List[str]
 
-#     vpath = Path(arg).resolve()
+    def __init__(self, input, output=None) -> None:
+        self.input = input
+        self.output = output
 
-#     return vpath
+    @abstractmethod
+    def make_cmd(self):
+        pass
 
-# def find_vfiles(user_arg: str) -> set:
-#     """Find video files subject to the supplied path argument
 
-#     ### Paramters
-#     1. user_arg: str
-#         - A str representing either a file or directory
+class DryRunJob(BasicJob):
+    def __init__(self,
+                 input: Path,
+                 preset: str = 'x265',
+                 output: Optional[Path] = None) -> None:
+        self.input = input
+        if not output:
+            self.output = utils.output_name_from_input(self.input)
+        else:
+            self.output = output
+        self.preset = preset
+        self.cmd = self.make_cmd()
 
-#     ### Returns
-#     - vfiles: set
-#         - A set of the absolute paths for all discovered video files
-#     """
-#     vfiles = set()
-#     vpath = make_path(user_arg)
+    def __str__(self) -> str:
+        return ' '.join(self.cmd)
 
-#     if vpath.is_file():
-#         vfiles.add(vpath)
-#     elif vpath.is_dir():
-#         cwd = Path(vpath)
-#         glob = list()
-#         # Build up the paths list with tuples of (input, output)
-#         for ext in EXTS:
-#             glob.extend(cwd.rglob(f'*{ext}'))
-#             glob.extend(cwd.rglob(f'*{ext.upper()}'))
-#             for path in glob:
-#                 vfiles.add(path)
+    def make_cmd(self) -> List[str]:
+        """Makes a fully qualified HandBrakeCLI (with nicing) as required to be
+        run by subprocess module"""
 
-#     return vfiles
+        # Presets are being stored in conf dir, which needs to be stripped, along
+        # with json extension
+        preset_name = self.preset.split('/')[1].strip('.json')
+        cmd = 'nice -n 10 HandBrakeCLI '.split()
+        _preset = f'--preset-import-file {self.preset} -Z {preset_name} '.split(
+        )
+        _in = ['-i', str(self.input)]
+        _out = ['-o', str(self.output)]
+        cmd.extend(_preset + _in + _out)
+        return cmd
+
+
+class SampleJob(BasicJob):
+    start_tm: str
+    end_tm: str
+
+    def __init__(self,
+                 input: Path,
+                 preset: str = 'x265',
+                 output: Optional[Path] = None,
+                 start_tm: int = 10,
+                 end_tm: int = 20) -> None:
+        self.input = input
+        if not output:
+            self.output = utils.output_name_from_input(self.input)
+        else:
+            self.output = output
+        self.preset = preset
+        self.start_tm = start_tm
+        self.end_tm = end_tm
+        self.cmd = self.make_cmd()
+
+    def __str__(self) -> str:
+        return ' '.join(self.cmd)
+
+    def make_cmd(self) -> List[str]:
+        """SampleJob convert """
+
+        # Presets are being stored in conf dir, which needs to be stripped, along
+        # with json extension
+        preset_name = self.preset.split('/')[1].strip('.json')
+        cmd = 'nice -n 10 HandBrakeCLI '.split()
+        _preset = f'--preset-import-file {self.preset} -Z {preset_name} '.split(
+        )
+        start_tm = f'--start-at seconds:{self.start_tm} '.split()
+        end_tm = f'--stop-at seconds:{self.end_tm} '.split()
+        _in = ['-i', str(self.input)]
+        _out = ['-o', str(self.output)]
+        cmd.extend(_preset + start_tm + end_tm + _in + _out)
+        return cmd
+
+    def convert(self) -> None:
+        utils.run_handbrake(self.cmd)
+
+
+class HandBrakeJob(BasicJob):
+    def __init__(self,
+                 input: Path,
+                 preset: str = 'x265',
+                 output: Optional[Path] = None):
+        self.input = input
+        if not output:
+            self.output = utils.output_name_from_input(self.input)
+        else:
+            self.output = output
+        self.preset = preset
+        self.cmd = self.make_cmd()
+
+    def __str__(self) -> str:
+        return ' '.join(self.cmd)
+
+    def make_cmd(self) -> List[str]:
+        """SampleJob convert """
+
+        # Presets are being stored in conf dir, which needs to be stripped,
+        # along with json extension
+        preset_name = self.preset.split('/')[1].strip('.json')
+        cmd = 'nice -n 10 HandBrakeCLI '.split()
+        _preset = f'--preset-import-file {self.preset} -Z {preset_name} '.split(
+        )
+        _in = ['-i', str(self.input)]
+        _out = ['-o', str(self.output)]
+        cmd.extend(_preset + _in + _out)
+        return cmd
+
+    def convert(self) -> None:
+        utils.run_handbrake(self.cmd)

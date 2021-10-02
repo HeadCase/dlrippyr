@@ -13,8 +13,7 @@ def info(args, print=True):
     f_list = set()
     objs = []
 
-    # Arguments come in from command
-    # line as a tuple, even singletons
+    # click args come in as a tuple, even singletons
     for path in args:
         f_list = find_vfiles(path)
 

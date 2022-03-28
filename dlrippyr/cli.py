@@ -8,8 +8,10 @@ Description: A CLI utility for encoding video files
 """
 
 import click
+from loguru import logger
 
-from dlrippyr import convert, info
+from dlrippyr.convert import convert 
+from dlrippyr.info import info
 
 # from dlrippyr import convert, info, sample
 

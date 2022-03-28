@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 import json
 import subprocess
+import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from loguru import logger
+
 from dlrippyr import utils
+
+logger.add(sys.stderr,
+           format="{time} {level} {message}",
+           filter="my_module",
+           level="INFO")
 
 
 class Metadata:
@@ -29,6 +37,7 @@ class Metadata:
         # call initialisation methods to populate attributes from json
         _json = self.get_json()
         self.parse_json(_json)
+        logger.info(f'{self.__repr__}')
 
     def __repr__(self) -> str:
         return (f'{self.__class__.__name__}("{self.path}")')

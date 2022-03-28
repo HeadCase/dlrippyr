@@ -23,8 +23,7 @@ DEFAULT_PRESET = 'conf/x265-1080p-mkv.json'
               is_flag=True,
               default=False,
               help='Optional flag indicating you want to name the output file.'
-              ' If supplied, the file command line argument will be the output'
-              ' file name.')
+              ' This *must* be the final argument of the command string.')
 @click.option('-s',
               '--sample',
               nargs=2,
@@ -60,6 +59,9 @@ def convert(srcs, output, preset, force, dry_run, sample):
     dst = None
     start_tm, end_tm = sample
     srcs = list(srcs)
+    # If the user has chosen to specify an output, it must be the last argument
+    # at command-line
+    # TODO: Enforce output file to be last in command string?
     if output:
         dst = srcs.pop(-1)
 

@@ -76,14 +76,16 @@ def convert(srcs, output, preset, force, dry_run, sample):
             run = DryRunJob(file, preset=preset, output=dst)
             click.echo(run)
         elif sample:
-            run = SampleJob(file,
+            job = SampleJob(file,
                             preset=preset,
                             output=dst,
                             start_tm=start_tm,
                             end_tm=end_tm)
-            run.convert()
+            job.run()
         else:
-            run = HandBrakeJob(file, preset=preset, output=dst)
+            job = HandBrakeJob(file, preset=preset, output=dst)
+            job.run()
+            
 
     if skips:
         click.echo('The following files were skipped as they are already'

@@ -18,6 +18,7 @@ logger.add(sys.stderr,
 
 class Metadata:
     """doc"""
+    path: Path
     format_name: str
     codec_name: str
     profile: str
@@ -27,12 +28,9 @@ class Metadata:
     bit_rate: int
     size: int
 
-    def __init__(self, path) -> None:
+    def __init__(self, path: Path) -> None:
         # Track the path of the source file
-        if not isinstance(path, Path):
-            self.path = utils.make_path(path)
-        else:
-            self.path = path
+        self.path = path
 
         # call initialisation methods to populate attributes from json
         _json = self.get_json()
@@ -152,8 +150,8 @@ class DryRunJob(BasicJob):
 
 
 class SampleJob(BasicJob):
-    start_tm: str
-    end_tm: str
+    start_tm: int
+    end_tm: int
 
     def __init__(self,
                  input: Path,
@@ -190,7 +188,7 @@ class SampleJob(BasicJob):
         cmd.extend(_preset + start_tm + end_tm + _in + _out)
         return cmd
 
-    def convert(self) -> None:
+    def run(self) -> None:
         utils.run_handbrake(self.cmd)
 
 
@@ -224,5 +222,5 @@ class HandBrakeJob(BasicJob):
         cmd.extend(_preset + _in + _out)
         return cmd
 
-    def convert(self) -> None:
+    def run(self) -> None:
         utils.run_handbrake(self.cmd)

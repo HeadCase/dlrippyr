@@ -6,24 +6,15 @@ from typing import List
 EXTS = ['mkv', 'mp4', 'mov', 'wmv', 'avi']
 
 
-def make_path(arg: str) -> Path:
-    """ Convert user input argument in the form of a string to a pathlib.Path
-    object
-    """
-    vpath = Path(arg)  #.resolve()
-
-    return vpath
-
-
 def find_vfiles(arg: str) -> set:
     """Find video files recursively within the supplied path argument """
     vfiles = set()
-    vpath = make_path(arg)
+    vpath = Path(arg)
 
     if vpath.is_file():
         vfiles.add(vpath)
     elif vpath.is_dir():
-        cwd = Path(vpath)
+        cwd = vpath
         glob = list()
         # Build up the paths list with tuples of (input, output)
         for ext in EXTS:

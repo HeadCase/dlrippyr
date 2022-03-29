@@ -8,12 +8,17 @@ from typing import Dict, List, Optional
 
 from loguru import logger
 
-from dlrippyr import utils
-
 logger.add(sys.stderr,
            format="{time} {level} {message}",
            filter="my_module",
            level="INFO")
+
+
+# TODO: This needs to be *much* smarter
+def output_name_from_input(input: Path) -> Path:
+    """Produce a default output name given a supplied input video file name """
+
+    return Path(f"{input.stem}_x265.mp4")
 
 
 class Metadata:
@@ -35,7 +40,7 @@ class Metadata:
         # call initialisation methods to populate attributes from json
         _json = self.get_json()
         self.parse_json(_json)
-        logger.info(f'{self.__repr__}')
+        # logger.info(f'{self.__repr__}')
 
     def __repr__(self) -> str:
         return (f'{self.__class__.__name__}("{self.path}")')
@@ -102,11 +107,11 @@ class Metadata:
                     setattr(self, field, _json[k][field])
 
 
-class BasicJob(ABC):
+class Job(ABC):
     input: Path
     output: Optional[Path]
     preset: str
-    cmd: List[str]
+    cmd: list[str]
 
     def __init__(self, input, output=None) -> None:
         self.input = input
@@ -116,22 +121,44 @@ class BasicJob(ABC):
     def make_cmd(self):
         pass
 
+    @abstractmethod
+    def run_handbrake(self):
+        pass
+
+
+class BasicJob(Job):
+
+    def make_cmd(self):
+        pass
+
+    def run_handbrake(self) -> None:
+        process = subprocess.Popen(self.cmd)
+        # Regurgitate HandBrakeCLI back to stdout after it is gobbled up by
+        # subprocess
+        while True:
+            sout = process.communicate()[0]
+            if process.poll() is not None:
+                break
+            if sout:
+                print(sout)
+
 
 class DryRunJob(BasicJob):
+
     def __init__(self,
                  input: Path,
                  preset: str = 'x265',
                  output: Optional[Path] = None) -> None:
         self.input = input
         if not output:
-            self.output = utils.output_name_from_input(self.input)
+            self.output = output_name_from_input(self.input)
         else:
             self.output = output
         self.preset = preset
         self.cmd = self.make_cmd()
 
     def __str__(self) -> str:
-        return ' '.join(self.cmd)
+        return f'Dry run for {self.input}:\n==>' + ' '.join(self.cmd) + '\n'
 
     def make_cmd(self) -> List[str]:
         """Makes a fully qualified HandBrakeCLI (with nicing) as required to be
@@ -148,6 +175,9 @@ class DryRunJob(BasicJob):
         cmd.extend(_preset + _in + _out)
         return cmd
 
+    def run_handbrake(self) -> None:
+        print(self)
+
 
 class SampleJob(BasicJob):
     start_tm: int
@@ -161,7 +191,7 @@ class SampleJob(BasicJob):
                  end_tm: int = 20) -> None:
         self.input = input
         if not output:
-            self.output = utils.output_name_from_input(self.input)
+            self.output = output_name_from_input(self.input)
         else:
             self.output = output
         self.preset = preset
@@ -188,18 +218,16 @@ class SampleJob(BasicJob):
         cmd.extend(_preset + start_tm + end_tm + _in + _out)
         return cmd
 
-    def run(self) -> None:
-        utils.run_handbrake(self.cmd)
-
 
 class HandBrakeJob(BasicJob):
+
     def __init__(self,
                  input: Path,
                  preset: str = 'x265',
                  output: Optional[Path] = None):
         self.input = input
         if not output:
-            self.output = utils.output_name_from_input(self.input)
+            self.output = output_name_from_input(self.input)
         else:
             self.output = output
         self.preset = preset
@@ -221,6 +249,3 @@ class HandBrakeJob(BasicJob):
         _out = ['-o', str(self.output)]
         cmd.extend(_preset + _in + _out)
         return cmd
-
-    def run(self) -> None:
-        utils.run_handbrake(self.cmd)

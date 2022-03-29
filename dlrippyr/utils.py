@@ -26,13 +26,6 @@ def find_vfiles(arg: str) -> set:
     return vfiles
 
 
-# TODO: This needs to be *much* smarter
-def output_name_from_input(input: Path) -> Path:
-    """Produce a default output name given a supplied input video file name """
-
-    return Path(f"{input.stem}_x265.mp4")
-
-
 def run_handbrake(cmd: List[str]) -> None:
     process = subprocess.Popen(cmd)
     # Regurgitate HandBrakeCLI back to stdout after it is gobbled up by

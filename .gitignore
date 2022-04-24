@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 # project
-/samples
+test/samples
 .DS_Store

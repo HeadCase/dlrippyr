@@ -3,25 +3,21 @@ import subprocess
 from pathlib import Path
 from typing import List
 
-EXTS = ['mkv', 'mp4', 'mov', 'wmv', 'avi']
+# Pathlib recursive globbing cannot be coerced into case-insensitive search
+EXTS = ['mkv', 'mp4', 'mov', 'wmv', 'avi', 'MKV', 'MP4', 'MOV', 'WMV', 'AVI']
 
 
-def find_vfiles(arg: str) -> set:
+def find_vfiles(arg: Path) -> list:
     """Find video files recursively within the supplied path argument """
-    vfiles = set()
-    vpath = Path(arg)
+    vfiles = []
 
-    if vpath.is_file():
-        vfiles.add(vpath)
-    elif vpath.is_dir():
-        cwd = vpath
-        glob = list()
-        # Build up the paths list with tuples of (input, output)
+    if arg.is_file():
+        vfiles.append(arg)
+    elif arg.is_dir():
         for ext in EXTS:
-            glob.extend(cwd.rglob(f'*{ext}'))
-            glob.extend(cwd.rglob(f'*{ext.upper()}'))
-            for path in glob:
-                vfiles.add(path)
+            globgen = arg.rglob(f'*{ext}')
+            for f in globgen:
+                vfiles.append(f)
 
     return vfiles
 
